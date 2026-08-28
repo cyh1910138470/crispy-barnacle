@@ -1,0 +1,48 @@
+/* QQ 音乐风格主题 —— 深绿黑 + QQ绿主色 */
+:root {
+  /* 主色 QQ 绿 */
+  --color-primary: #21C37A;
+  --color-primary-hover: #2BD488;
+  --color-primary-active: #1AAA68;
+  --color-primary-soft: rgba(33, 195, 122, 0.15);
+
+  /* 背景层次 */
+  --bg-base: #0d0d0d;
+  --bg-sidebar: #111111;
+  --bg-surface: #191919;
+  --bg-elevated: #202020;
+  --bg-hover: #262626;
+  --bg-active: #303030;
+
+  /* 文字 */
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #7a7a7a;
+  --text-disabled: #555555;
+
+  /* 边框 */
+  --border-color: #262626;
+  --border-color-light: #1e1e1e;
+
+  /* 阴影 */
+  --shadow-base: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(33, 195, 122, 0.35);
+
+  /* 尺寸 */
+  --titlebar-height: 48px;
+  --sidebar-width: 200px;
+  --player-height: 56px;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-full: 999px;
+
+  /* 过渡 */
+  --transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 字体 */
+  --font-family: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', system-ui, sans-serif;
+}

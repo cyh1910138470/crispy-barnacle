@@ -1,0 +1,29 @@
+# 依赖
+node_modules/
+out/
+dist/
+
+# Electron 构建产物
+release/
+*.exe
+*.appx
+*.msi
+
+# 日志
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 编辑器/系统
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# 运行时数据（开发时生成）
+config.json
+*.db
+*.db-journal
