@@ -1,9 +1,16 @@
 // 主窗口
-const { BrowserWindow, shell, screen } = require('electron')
+const { BrowserWindow, shell, screen, app } = require('electron')
 const { join } = require('path')
 const { loadConfig, saveConfig } = require('../utils/config')
+const { closeLyricsWindow } = require('./lyrics')
+const { displayBalloonOnce } = require('./tray')
 
 let mainWin = null
+let miniModeActive = false
+
+function setMiniModeFlag(v) {
+  miniModeActive = !!v
+}
 
 function createMainWindow() {
   if (mainWin && !mainWin.isDestroyed()) {
@@ -53,8 +60,10 @@ function createMainWindow() {
   // 记住窗口位置和大小（防抖）
   let saveTimer = null
   const debouncedSave = () => {
+    if (miniModeActive) return // 迷你模式下的尺寸变化不写入配置
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = setTimeout(() => {
+      if (miniModeActive) return
       if (!mainWin || mainWin.isDestroyed()) return
       const isMax = mainWin.isMaximized()
       if (!isMax) {
@@ -83,8 +92,30 @@ function createMainWindow() {
     }
   })
 
+  // 点关闭按钮：默认最小化到托盘继续播放；设置里选"直接退出"则正常关闭
+  mainWin.on('close', (e) => {
+    if (app.isQuitting) return
+    const config = loadConfig()
+    if (config.closeAction === 'exit') return // 不拦截，走正常关闭 → window-all-closed → quit
+    // 托盘不可用时不允许隐藏（否则窗口无法召回、后台一直放歌），直接退出
+    const { isTrayAvailable } = require('./tray')
+    if (!isTrayAvailable()) {
+      app.isQuitting = true
+      app.quit()
+      return
+    }
+    e.preventDefault()
+    mainWin.hide()
+    if (!config.trayHintShown) {
+      displayBalloonOnce()
+      saveConfig({ trayHintShown: true })
+    }
+  })
+
   mainWin.on('closed', () => {
     mainWin = null
+    // 主窗口关闭时同步关闭桌面歌词，避免应用残留后台
+    closeLyricsWindow()
   })
 
   mainWin.webContents.setWindowOpenHandler(({ url }) => {
@@ -101,5 +132,6 @@ function getMainWindow() {
 
 module.exports = {
   createMainWindow,
-  getMainWindow
+  getMainWindow,
+  setMiniModeFlag
 }

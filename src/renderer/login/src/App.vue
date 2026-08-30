@@ -22,66 +22,53 @@
       </div>
     </aside>
 
-    <!-- 右侧表单区 -->
+    <!-- 右侧：启动画面 / 激活表单 -->
     <section class="form-side">
-      <div class="form-card">
-        <h2 class="title">欢迎回来</h2>
-        <p class="subtitle">输入密码以进入 MSC-TT</p>
+      <!-- 已激活：启动画面，2 秒后自动进入 -->
+      <div v-if="mode === 'splash'" class="form-card splash">
+        <div class="spinner"></div>
+        <h2 class="title">正在启动</h2>
+        <p class="subtitle">MSC-TT 准备中，请稍候…</p>
+      </div>
+
+      <!-- 激活成功，即将进入 -->
+      <div v-else-if="mode === 'success'" class="form-card splash">
+        <div class="success-icon">✓</div>
+        <h2 class="title">激活成功</h2>
+        <p class="subtitle">正在进入 MSC-TT…</p>
+      </div>
+
+      <!-- 未激活：激活表单 -->
+      <div v-else class="form-card">
+        <h2 class="title">激活 MSC-TT</h2>
+        <p class="subtitle">首次使用需要激活。激活码与这台电脑绑定，转发软件给他人无法使用。</p>
+
+        <label class="label">本机机器码</label>
+        <div class="machine-row">
+          <div class="machine-code">{{ machineCode || '读取中…' }}</div>
+          <button class="copy-btn" :disabled="!machineCode" @click="copyMachineCode">
+            {{ copied ? '已复制' : '复制' }}
+          </button>
+        </div>
+        <p class="tip">把机器码发给作者，换取激活码后填入下方</p>
 
         <div class="field">
           <input
-            v-model="password"
-            type="password"
+            v-model="code"
             class="input"
-            placeholder="请输入密码"
-            @keyup.enter="handleVerify"
-            :disabled="loading"
-            ref="pwdRef"
+            placeholder="请输入激活码"
+            @keyup.enter="handleActivate"
+            :disabled="activating"
+            ref="codeRef"
           />
         </div>
 
         <div v-if="error" class="error-msg">{{ error }}</div>
 
-        <button class="submit-btn" :disabled="loading" @click="handleVerify">
-          <span v-if="!loading">进入播放器</span>
-          <span v-else>验证中…</span>
+        <button class="submit-btn" :disabled="activating" @click="handleActivate">
+          <span v-if="!activating">激活并进入</span>
+          <span v-else>激活中…</span>
         </button>
-
-        <button class="change-btn" @click="toggleChangeDialog">
-          {{ showChangeDialog ? '收起修改面板' : '修改密码' }}
-        </button>
-
-        <!-- 修改密码面板 -->
-        <transition name="slide">
-          <div v-if="showChangeDialog" class="change-dialog">
-            <h3>修改密码</h3>
-            <input
-              v-model="oldPassword"
-              type="password"
-              placeholder="原密码"
-              class="input small"
-            />
-            <input
-              v-model="newPassword"
-              type="password"
-              placeholder="新密码（至少 4 位）"
-              class="input small"
-            />
-            <input
-              v-model="confirmPassword"
-              type="password"
-              placeholder="确认新密码"
-              class="input small"
-            />
-            <div v-if="changeMsg" :class="['msg', { ok: changeOk }]">{{ changeMsg }}</div>
-            <div class="dialog-actions">
-              <button @click="showChangeDialog = false">取消</button>
-              <button @click="handleChange" :disabled="changing">
-                {{ changing ? '提交中…' : '确认修改' }}
-              </button>
-            </div>
-          </div>
-        </transition>
       </div>
     </section>
   </div>
@@ -90,94 +77,65 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 
-const password = ref('')
-const loading = ref(false)
+const mode = ref('checking') // checking | splash | success | activate
+const machineCode = ref('')
+const code = ref('')
+const activating = ref(false)
 const error = ref('')
-const pwdRef = ref(null)
+const copied = ref(false)
+const codeRef = ref(null)
 
-const showChangeDialog = ref(false)
-const oldPassword = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-const changing = ref(false)
-const changeMsg = ref('')
-const changeOk = ref(false)
-
-onMounted(() => {
-  nextTick(() => pwdRef.value && pwdRef.value.focus())
+onMounted(async () => {
+  try {
+    const st = await window.loginAPI.getLicenseStatus()
+    machineCode.value = st.machineCode
+    if (st.activated) {
+      // 已授权：展示启动画面，2 秒后自动进入主界面
+      mode.value = 'splash'
+      setTimeout(enterApp, 2000)
+    } else {
+      mode.value = 'activate'
+      nextTick(() => codeRef.value && codeRef.value.focus())
+    }
+  } catch (e) {
+    mode.value = 'activate'
+    error.value = '初始化失败：' + (e.message || e)
+  }
 })
 
-function toggleChangeDialog() {
-  showChangeDialog.value = !showChangeDialog.value
-  if (!showChangeDialog.value) {
-    oldPassword.value = ''
-    newPassword.value = ''
-    confirmPassword.value = ''
-    changeMsg.value = ''
+async function enterApp() {
+  const ok = await window.loginAPI.enterApp()
+  if (!ok) {
+    mode.value = 'activate'
+    error.value = '进入失败，请重启应用重试'
   }
 }
 
-async function handleVerify() {
-  if (!password.value) {
-    error.value = '请输入密码'
+function copyMachineCode() {
+  window.loginAPI.copyMachineCode(machineCode.value)
+  copied.value = true
+  setTimeout(() => (copied.value = false), 1500)
+}
+
+async function handleActivate() {
+  if (!code.value.trim()) {
+    error.value = '请输入激活码'
     return
   }
-  loading.value = true
+  activating.value = true
   error.value = ''
   try {
-    const ok = await window.loginAPI.verify(password.value)
-    if (!ok) {
-      error.value = '密码错误，请重试'
-      password.value = ''
-      nextTick(() => pwdRef.value && pwdRef.value.focus())
-    }
-    // 成功时主进程会自动关闭本窗口并打开主窗口
-  } catch (e) {
-    error.value = '验证失败：' + (e.message || e)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleChange() {
-  if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
-    changeOk.value = false
-    changeMsg.value = '请填写完整'
-    return
-  }
-  if (newPassword.value !== confirmPassword.value) {
-    changeOk.value = false
-    changeMsg.value = '两次新密码不一致'
-    return
-  }
-  if (newPassword.value.length < 4) {
-    changeOk.value = false
-    changeMsg.value = '新密码至少 4 位'
-    return
-  }
-  changing.value = true
-  changeMsg.value = ''
-  try {
-    const res = await window.loginAPI.changePassword(oldPassword.value, newPassword.value)
+    const res = await window.loginAPI.activate(code.value.trim())
     if (res.ok) {
-      changeOk.value = true
-      changeMsg.value = '✓ 修改成功，下次启动用新密码'
-      oldPassword.value = ''
-      newPassword.value = ''
-      confirmPassword.value = ''
-      setTimeout(() => {
-        showChangeDialog.value = false
-        changeMsg.value = ''
-      }, 1800)
+      mode.value = 'success'
+      setTimeout(enterApp, 900)
     } else {
-      changeOk.value = false
-      changeMsg.value = res.msg
+      error.value = res.msg || '激活码无效'
     }
   } catch (e) {
-    changeOk.value = false
-    changeMsg.value = '修改失败：' + (e.message || e)
+    error.value = '激活失败：' + (e.message || e)
   } finally {
-    changing.value = false
+    activating.value = false
   }
 }
 </script>
@@ -272,6 +230,40 @@ async function handleChange() {
   width: 320px;
 }
 
+/* 启动画面 */
+.splash {
+  text-align: center;
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 24px;
+  border: 3px solid rgba(33, 195, 122, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.success-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  border-radius: 50%;
+  box-shadow: var(--shadow-glow);
+}
+
 .title {
   font-size: 28px;
   font-weight: 700;
@@ -282,6 +274,65 @@ async function handleChange() {
   color: var(--text-secondary);
   margin-bottom: 32px;
   font-size: 13px;
+  line-height: 1.6;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.machine-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.machine-code {
+  flex: 1;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px dashed var(--color-primary);
+  background: rgba(33, 195, 122, 0.08);
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  user-select: text;
+}
+
+.copy-btn {
+  width: 72px;
+  height: 44px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  transition: var(--transition);
+}
+
+.copy-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.copy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tip {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
 }
 
 .field {
@@ -308,11 +359,6 @@ async function handleChange() {
 .input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-soft);
-}
-
-.input.small {
-  height: 36px;
-  margin-bottom: 10px;
 }
 
 .error-msg {
@@ -342,93 +388,5 @@ async function handleChange() {
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.change-btn {
-  width: 100%;
-  margin-top: 16px;
-  padding: 8px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  transition: var(--transition);
-}
-
-.change-btn:hover {
-  color: var(--color-primary);
-}
-
-.change-dialog {
-  margin-top: 16px;
-  padding: 16px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-}
-
-.change-dialog h3 {
-  font-size: 15px;
-  margin-bottom: 12px;
-  color: var(--text-primary);
-}
-
-.change-dialog .msg {
-  font-size: 12px;
-  color: #ff5a5a;
-  margin-top: 4px;
-}
-
-.change-dialog .msg.ok {
-  color: var(--color-primary);
-}
-
-.dialog-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.dialog-actions button {
-  flex: 1;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  transition: var(--transition);
-}
-
-.dialog-actions button:last-child {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.dialog-actions button:hover:not(:disabled) {
-  filter: brightness(1.15);
-}
-
-.dialog-actions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 折叠动画 */
-.slide-enter-active,
-.slide-leave-active {
-  transition: var(--transition-slow);
-  overflow: hidden;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  opacity: 0;
-  max-height: 0;
-  margin-top: 0 !important;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-.slide-enter-to,
-.slide-leave-from {
-  max-height: 400px;
 }
 </style>

@@ -46,7 +46,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           login: resolve('src/preload/login.js'),
-          main: resolve('src/preload/main.js')
+          main: resolve('src/preload/main.js'),
+          lyrics: resolve('src/preload/lyrics.js')
         },
         output: {
           entryFileNames: '[name].js'
@@ -66,7 +67,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           login: resolve('src/renderer/login/index.html'),
-          main: resolve('src/renderer/main/index.html')
+          main: resolve('src/renderer/main/index.html'),
+          lyrics: resolve('src/renderer/lyrics/index.html')
         }
       }
     },

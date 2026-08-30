@@ -1,10 +1,13 @@
-// 登录窗口的 preload：暴露登录相关 API
-const { contextBridge, ipcRenderer } = require('electron')
+// 登录/激活窗口的 preload
+const { contextBridge, ipcRenderer, clipboard } = require('electron')
 
 contextBridge.exposeInMainWorld('loginAPI', {
-  // 验证密码（成功后主进程会自动切到主窗口）
-  verify: (password) => ipcRenderer.invoke('auth:verify', password),
-  // 修改密码
-  changePassword: (oldPassword, newPassword) =>
-    ipcRenderer.invoke('auth:changePassword', { oldPassword, newPassword })
+  // 本机机器码 + 是否已激活
+  getLicenseStatus: () => ipcRenderer.invoke('license:status'),
+  // 提交激活码（成功后写配置，之后启动免输入）
+  activate: (code) => ipcRenderer.invoke('license:activate', code),
+  // 进入主窗口（主进程负责开主窗、关本窗）
+  enterApp: () => ipcRenderer.invoke('auth:enter'),
+  // 复制机器码到系统剪贴板
+  copyMachineCode: (code) => clipboard.writeText(String(code || ''))
 })

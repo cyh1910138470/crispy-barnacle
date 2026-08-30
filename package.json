@@ -5,12 +5,65 @@
   "main": "./out/main/index.js",
   "author": "MSC-TT",
   "scripts": {
-    "dev": "electron-vite dev",
+    "dev": "chcp 65001 >nul && electron-vite dev",
     "build": "electron-vite build",
+    "build:server": "node scripts/build-audio-server.mjs",
     "preview": "electron-vite preview",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
-    "build:win": "electron-vite build && electron-builder --win --x64",
+    "build:win": "npm run build:server && electron-vite build && set ELECTRON_BUILDER_CACHE=.eb-cache&& electron-builder --win --x64",
     "postinstall": "electron-vite build"
+  },
+  "build": {
+    "appId": "com.msctt.desktop",
+    "productName": "MSC-TT",
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/audio-server",
+        "to": "audio-server"
+      },
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "MSC-TT-${version}-安装版.exe"
+    },
+    "portable": {
+      "artifactName": "MSC-TT-${version}-便携版.exe"
+    }
   },
   "dependencies": {
     "@arco-design/web-vue": "^2.55.0",

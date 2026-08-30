@@ -5,7 +5,7 @@ const { getConfigPath, ensureDir } = require('./paths')
 
 // 默认配置
 const DEFAULT_CONFIG = {
-  passwordHash: null,        // null 表示首次启动，使用代码里的默认密码
+  activated: false,          // 是否已通过激活码授权（true 后启动直接进主界面）
   localMusicDirs: [],        // 本地音乐扫描目录列表，空时使用默认目录
   theme: 'dark',             // 主题：dark / light（当前仅 dark）
   primaryColor: '#31C27C',   // 主色 QQ绿
@@ -19,6 +19,8 @@ const DEFAULT_CONFIG = {
   cacheEnabled: true,        // 是否缓存在线歌曲
   desktopLyric: true,        // 是否显示桌面歌词
   preventSleep: true,        // 听歌时防止系统休眠
+  openAtLogin: false,        // 开机自启动
+  closeAction: 'tray',       // 点关闭按钮：tray = 最小化到托盘 / exit = 直接退出
   shortcuts: {               // 全局快捷键（用户可改）
     playPause: 'CommandOrControl+Alt+P',
     prev: 'CommandOrControl+Alt+Left',

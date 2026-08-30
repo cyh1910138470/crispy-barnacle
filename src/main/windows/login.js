@@ -13,6 +13,7 @@ function createLoginWindow() {
   loginWin = new BrowserWindow({
     width: 960,
     height: 640,
+    useContentSize: true, // 排除高 DPI 下内容区尺寸歧义
     show: false,
     frame: false,              // 无边框，自定义标题栏
     resizable: false,
@@ -30,6 +31,9 @@ function createLoginWindow() {
   })
 
   loginWin.once('ready-to-show', () => {
+    // 规避 Windows 高 DPI 下无边框固定尺寸窗口的首帧缩放错位：显示前强制重排一次
+    const [w, h] = loginWin.getContentSize()
+    loginWin.setContentSize(w, h)
     loginWin.show()
   })
 

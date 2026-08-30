@@ -38,7 +38,8 @@ const props = defineProps({
   lyrics: { type: Array, default: () => [] },
   plainText: { type: String, default: null },
   synced: { type: Boolean, default: false },
-  currentTime: { type: Number, default: 0 }
+  currentTime: { type: Number, default: 0 },
+  trackId: { type: Number, default: null }
 })
 
 const panelRef = ref(null)
@@ -207,11 +208,11 @@ watch(() => props.trackId, () => {
 }
 
 .lyric-line.active {
-  color: var(--primary, #21C37A);
+  color: var(--accent);
   font-size: 18px;
   font-weight: 600;
   transform: scale(1.05);
-  text-shadow: 0 0 20px rgba(33, 195, 122, 0.4);
+  text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.4);
 }
 
 /* 纯文本歌词 */

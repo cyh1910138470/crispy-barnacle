@@ -1,20 +1,52 @@
-# 依赖
+# 依赖（任何层级生效：主项目 + 所有子项目/外部子项目的 node_modules 都忽略）
 node_modules/
-out/
 dist/
+out/
 
-# Electron 构建产物
-release/
+# Electron 打包输出（仅忽略仓库根目录下的，不影响子项目里同名源码目录）
+/release/
+/build/
+/resources/
 *.exe
 *.appx
 *.msi
+*.zip
 
-# 日志
+# 打包/构建缓存（仅根目录）
+/.cache/
+/.eb-cache/
+/.vite/
+.eslintcache
+.parcel-cache/
+.turbo/
+
+# —— 子项目源码目录已恢复为「跟踪」：qq-music-api / music-api / audio-server
+#    （它们内部的 node_modules / dist 仍然会被上面 2 条任意层级规则忽略）
+
+# 本地工具脚本目录（scripts/、tools/）源码也需要提交，不再忽略
+# diag_* 仍然忽略（临时诊断脚本，不想入库）
+diag_*
+
+# 仅仓库根目录的抓包/临时调试文件（不影响子项目和 src 里的 html/txt 源码）
+/_*
+/*.html
+/*.txt
+/*.ps1
+
+# 仅仓库根目录的临时 Python 诊断脚本 / 二进制 dump（不忽略子项目里的 Python 工具）
+/*.py
+/*.hex
+/*.bin
+/*.dump
+
+# 日志（任意层级）
 *.log
 logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # 编辑器/系统
 .vscode/*
@@ -23,7 +55,45 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# 运行时数据（开发时生成）
-config.json
+# 运行时数据（根目录）
+/config.json
 *.db
 *.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+
+# 本地测试音频/歌词/封面（仅 static 目录下，保留分发用的 icon/logo/splash/tray 静态资源）
+static/*.mp3
+static/*.wav
+static/*.flac
+static/*.ogg
+static/*.m4a
+static/*.aac
+static/*.lrc
+static/*.png
+static/*.jpg
+static/*.jpeg
+!static/icon*.png
+!static/logo*.png
+!static/splash*.png
+!static/tray*.png
+
+# 运行时下载/缓存的本地歌曲文件目录（仅根目录）
+/downloads/
+/cache/
+/temp/
+/tmp/
+
+# 凭据 / 本地环境变量（任意层级）
+*.pem
+*.key
+*.crt
+*.p12
+.env
+.env.local
+.env.*.local
+.DS_Store?
+ehthumbs.db
+Desktop.ini

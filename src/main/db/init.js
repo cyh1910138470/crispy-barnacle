@@ -90,10 +90,28 @@ function initTables() {
       lrc_text      TEXT,                 -- 原始 LRC 文本
       plain_text    TEXT,                 -- 纯文本歌词（无时间戳）
       synced        INTEGER DEFAULT 0,    -- 是否同步歌词（有时间戳）
+      word_lrc     TEXT,                 -- 逐字歌词原文（QRC / YRC）
       updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
     );
   `)
+
+  // 旧库迁移：lyrics 表补 word_lrc 列
+  const lyricCols = d.prepare("PRAGMA table_info(lyrics)").all().map((c) => c.name)
+  if (!lyricCols.includes('word_lrc')) {
+    d.exec('ALTER TABLE lyrics ADD COLUMN word_lrc TEXT')
+  }
+
+  // 旧库迁移：songs 表补 cover_url 列（在线源直接存 URL，不用每次拼封面地址）
+  const songCols = d.prepare("PRAGMA table_info(songs)").all().map((c) => c.name)
+  if (!songCols.includes('cover_url')) {
+    d.exec('ALTER TABLE songs ADD COLUMN cover_url TEXT')
+  }
+  // 旧库迁移：songs 表补 online_type 列（记录这首歌当初缓存的源类型 qq/netease/higequ，
+  // ENOENT 回退抓播放直链时按这个源去取，不依赖"当前激活的源"，避免跨源互斥导致抓不到）
+  if (!songCols.includes('online_type')) {
+    d.exec('ALTER TABLE songs ADD COLUMN online_type TEXT')
+  }
 
   // 初始化默认歌单
   const count = d.prepare('SELECT COUNT(*) AS cnt FROM playlists').get().cnt
