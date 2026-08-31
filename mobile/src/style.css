@@ -1,0 +1,150 @@
+/* ===== 全局：QQ音乐式暗色 + 移动端安全区适配 ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg-app: #0e1418;
+  --bg-card: #141a1e;
+  --bg-raised: #1c242a;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.08);
+  --text-primary: #f1f3f5;
+  --text-secondary: #a7b0b7;
+  --text-tertiary: #6b7680;
+  --brand: #31c27c;
+  --brand-2: #208854;
+  --brand-glow: 0 0 18px rgba(49, 194, 124, 0.45);
+  --danger: #ff4d4f;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: dark;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* 隐藏滚动条 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* 通用滚动容器 - 允许惯性滚动 */
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* 单行省略 */
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 通用卡片 */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+/* 品牌色按钮 */
+.btn-brand {
+  background: linear-gradient(180deg, #36d68a 0%, #2aad69 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: var(--brand-glow);
+}
+.btn-brand:active {
+  transform: translateY(1px);
+}
+
+/* 迷你播放条 + 底部导航总高度：56 + 56 = 112 */
+.app-content {
+  padding-bottom: calc(112px + var(--safe-bottom));
+}
+.has-mini-only .app-content {
+  padding-bottom: calc(56px + var(--safe-bottom));
+}
+
+/* 页面切换淡入 */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.22s ease;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* Varlet 组件深色模式下的颜色微调（style.css 是全局样式，无需 :global） */
+.var-app {
+  color: var(--text-primary);
+}
+.var-button--primary {
+  background: var(--brand) !important;
+}
+.var-chip--primary {
+  background: rgba(49, 194, 124, 0.18) !important;
+  color: var(--brand) !important;
+  border-color: rgba(49, 194, 124, 0.35) !important;
+}
+.var-tab--active .var-tab__text {
+  color: var(--brand) !important;
+}
+.var-tabs__pane {
+  background: var(--brand) !important;
+}
+.var-search {
+  background: var(--bg-card) !important;
+}
+.var-divider {
+  border-color: var(--line) !important;
+}
+.var-swipe-item {
+  height: auto !important;
+}

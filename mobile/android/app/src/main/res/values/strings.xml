@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MSC-TT</string>
+    <string name="title_activity_main">MSC-TT</string>
+    <string name="package_name">com.msctt.mobile</string>
+    <string name="custom_url_scheme">com.msctt.mobile</string>
+</resources>

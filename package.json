@@ -5,12 +5,12 @@
   "main": "./out/main/index.js",
   "author": "MSC-TT",
   "scripts": {
-    "dev": "chcp 65001 >nul && electron-vite dev",
+    "dev": "chcp 65001 >nul && set ELECTRON_FORCE_IS_PACKAGED=&& electron-vite dev",
     "build": "electron-vite build",
     "build:server": "node scripts/build-audio-server.mjs",
     "preview": "electron-vite preview",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
-    "build:win": "npm run build:server && electron-vite build && set ELECTRON_BUILDER_CACHE=.eb-cache&& electron-builder --win --x64",
+    "build:win": "npm run build:server && electron-vite build && set ELECTRON_BUILDER_CACHE=.eb-cache&& electron-builder --win --x64 -p never",
     "postinstall": "electron-vite build"
   },
   "build": {
@@ -78,6 +78,7 @@
   "devDependencies": {
     "@electron/rebuild": "^3.6.0",
     "@vitejs/plugin-vue": "^5.1.2",
+    "esbuild": "^0.21.5",
     "electron": "^31.3.1",
     "electron-builder": "^24.13.3",
     "electron-vite": "^2.3.0",

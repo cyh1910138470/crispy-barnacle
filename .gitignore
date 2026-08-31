@@ -91,9 +91,17 @@ static/*.jpeg
 *.key
 *.crt
 *.p12
+*.jks
+*.keystore
+*.aab              # Android 正式签名产物（debug apk 也在 mobile/android/.gitignore 里单独忽略）
 .env
 .env.local
 .env.*.local
 .DS_Store?
 ehthumbs.db
 Desktop.ini
+
+# —— mobile/ 移动端子项目：下面这些虽然在子目录 .gitignore 里有，但根目录也兜底以防漏网 ——
+**/local.properties          # SDK 路径硬编码，每台电脑不同
+**/.gradle/                   # Gradle 缓存（任意层级）
+**/build/                     # 所有 Gradle build 产物
