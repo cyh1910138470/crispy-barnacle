@@ -1,0 +1,38 @@
+# 前置：已经装好 Node 20 + JDK 17 + Android Studio（SDK Platform 34 已装）
+# 前置：已经 git config user.email / user.name（否则第一次 commit 会报错）
+
+# 1. clone 仓库
+git clone https://github.com/ 你的用户名/仓库名.git myproject
+cd myproject
+
+# 2. （可选）手动配环境变量（如果上面 setx 还没在当前 shell 生效）
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-17.0.xx-hotspot"
+$env:ANDROID_SDK_ROOT = "E:\SDK"
+
+# 3. 桌面端（根目录 Electron）
+npm install
+
+# 4. 移动端
+cd mobile
+npm install
+
+# 5. ⚠️ 关键：改 Gradle wrapper 镜像（国内必须！否则 Gradle 下载 10 分钟超时）
+#    先看版本号
+$gradleVer = (Get-Content gradle\wrapper\gradle-wrapper.properties | Select-String 'gradle-\d+\.\d+').Matches.Value -replace 'gradle-',''
+#    替换成腾讯云（保持版本号不变！版本号错了 AGP 会不兼容）
+$oldUrl = (Get-Content gradle\wrapper\gradle-wrapper.properties | Select-String 'distributionUrl').Line
+$newUrl = $oldUrl -replace 'https\\://services.gradle.org/distributions/', "https\\://mirrors.cloud.tencent.com/gradle/"
+(Get-Content gradle\wrapper\gradle-wrapper.properties) -replace [regex]::Escape($oldUrl), $newUrl | Set-Content gradle\wrapper\gradle-wrapper.properties
+
+# 6. npm 国内镜像（可选，加速装依赖）
+npm config set registry https://registry.npmmirror.com
+
+# 7. 前端构建 + Capacitor 同步（android/ 已在仓库，不用再 cap add android）
+npm run cap:sync
+
+# 8. 如果这台电脑 SDK 还没装 Platform 34，Gradle 会自动下（需要 3-5 分钟）
+#    或者手动 Android Studio → SDK Manager 勾 Platform 34
+cd android
+.\gradlew.bat assembleDebug
+
+# ✅ 成功！APK 在 android\app\build\outputs\apk\debug\app-debug.apk
